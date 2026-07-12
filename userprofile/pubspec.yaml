@@ -1,0 +1,27 @@
+name: yemekyemek
+description: "YemekYemek? - Yemek ve restoran puanlama sosyal medya platformu"
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  # Lokal dosya tabanlı veri saklama için (users.txt / profiles.txt)
+  path_provider: ^2.1.2
+  # Şifre hash'leme için
+  crypto: ^3.0.3
+  # İleride gerçek backend'e bağlanılacağında HTTP istekleri için hazır (şimdilik kullanılmıyor)
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
