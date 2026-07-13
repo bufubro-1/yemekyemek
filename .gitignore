@@ -1,1 +1,22 @@
+# Secrets / environment
 .env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*~
+
+# Logs / temp
+*.log
+tmp/
+temp/
