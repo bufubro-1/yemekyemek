@@ -10,11 +10,9 @@ otomatik olarak doğru ana ekrana yönlendirilir.
 ## Mimari
 
 - **State management:** Hafif, `ChangeNotifier` (`SessionController`) + `setState`. Provider/Bloc/Riverpod yok.
-- **Veri katmanı:** Repository pattern (`lib/repositories`). Şu an tüm veriler cihaz üzerinde
-  JSON formatlı `.txt` dosyalarında tutuluyor (`LocalFileStore`). `AppConfig.useRemoteBackend`
-  bayrağı `true` yapıldığında aynı arayüzler (`AuthRepository`, `ProfileRepository`,
-  `RestaurantRepository`) gerçek bir API'ye (bkz. kök `database/` klasöründeki PostgreSQL şeması)
-  bağlanacak şekilde tasarlanmıştır.
+- **Veri katmanı:** Repository pattern (`lib/repositories`). Varsayılan olarak `Remote*Repository`
+  sınıfları Node API'ye HTTP + Bearer JWT ile bağlanır. Eski `Local*Repository` sınıfları
+  `--dart-define=USE_REMOTE_BACKEND=false` ile prototip/fallback amaçlı kullanılabilir.
 - **Roller:** `AppUser.role` (`user` / `restaurantOwner`) hangi ana ekrana
   (`HomeScreen` / `RestaurantPanelScreen`) yönlendirileceğini belirler (bkz. `lib/utils/role_navigation.dart`).
 
@@ -44,6 +42,13 @@ flutter pub get
 flutter run
 ```
 
+Varsayılan API adresi web, iOS simulator ve macOS için `http://localhost:3000/v1`'dir.
+Android emülatörde host makineye erişmek için:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/v1
+```
+
 Bir hata alırsan `pubspec.yaml` bağımlılıklarının tam indirildiğinden emin ol ve
 `flutter pub get`'i tekrar çalıştır. Her bağımlılığın ne için kullanıldığına dair
 ayrıntılı açıklama için [`DEPENDENCIES.md`](DEPENDENCIES.md)'ye bakabilirsin.
@@ -51,6 +56,6 @@ ayrıntılı açıklama için [`DEPENDENCIES.md`](DEPENDENCIES.md)'ye bakabilirs
 ## Veritabanı
 
 PostgreSQL şeması ve ilgili SQL scriptleri kök dizindeki [`database/`](../database) klasöründe
-tutulur; şu an uygulama tarafından kullanılmıyor (uygulama hâlâ yerel dosya deposunu kullanıyor),
-ancak `RemoteAuthRepository` / `RemoteProfileRepository` / `RemoteRestaurantRepository`
-implemente edildiğinde bu şema referans alınacaktır.
+tutulur. Flutter uygulaması veritabanına doğrudan bağlanmaz;
+`RemoteAuthRepository` / `RemoteProfileRepository` / `RemoteRestaurantRepository`
+üzerinden yerel Node API'yi kullanır.

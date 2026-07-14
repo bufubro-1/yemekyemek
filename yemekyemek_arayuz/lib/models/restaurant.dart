@@ -30,14 +30,15 @@ class Restaurant {
       };
 
   factory Restaurant.fromJson(Map<String, dynamic> json) => Restaurant(
-        ownerUserId: json['ownerUserId'] as String,
+        ownerUserId: (json['ownerUserId'] ?? json['owner_user_id']).toString(),
         name: json['name'] as String? ?? '',
         description: json['description'] as String? ?? '',
         phone: json['phone'] as String? ?? '',
         address: json['address'] as String? ?? '',
-        menuCategories: (json['menuCategories'] as List?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            [],
+        menuCategories:
+            ((json['menuCategories'] ?? json['menu_categories']) as List?)
+                    ?.map((e) => e.toString())
+                    .toList() ??
+                [],
       );
 }

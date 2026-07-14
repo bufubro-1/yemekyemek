@@ -7,11 +7,20 @@ enum UserRole {
 
   String toJson() => name;
 
+  String toApiValue() {
+    switch (this) {
+      case UserRole.user:
+        return 'user';
+      case UserRole.restaurantOwner:
+        return 'restaurant_owner';
+    }
+  }
+
   static UserRole fromJson(String? value) {
-    return UserRole.values.firstWhere(
-      (r) => r.name == value,
-      orElse: () => UserRole.user,
-    );
+    if (value == 'restaurant_owner' || value == 'restaurantOwner') {
+      return UserRole.restaurantOwner;
+    }
+    return UserRole.user;
   }
 }
 
@@ -58,25 +67,37 @@ class AppUser {
     );
   }
 
+  /// UI/oturum serileştirmesi. Parola özeti bu çıktıya bilinçli olarak
+  /// eklenmez; yalnızca yerel kullanıcı deposu [toLocalJson] kullanır.
   Map<String, dynamic> toJson() => {
         'id': id,
         'nickname': nickname,
         'username': username,
         'email': email,
-        'passwordHash': passwordHash,
         'createdAt': createdAt.toIso8601String(),
         'role': role.toJson(),
       };
 
+  Map<String, dynamic> toLocalJson() => {
+        ...toJson(),
+        'passwordHash': passwordHash,
+      };
+
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
-        id: json['id'] as String,
-        nickname: json['nickname'] as String? ?? 'kullanici${json['id']}',
-        username: json['username'] as String,
-        email: json['email'] as String,
-        passwordHash: json['passwordHash'] as String,
-        createdAt: DateTime.parse(json['createdAt'] as String),
+        id: json['id'].toString(),
+        nickname:
+            json['nickname'] as String? ?? 'kullanici${json['id'].toString()}',
+        username: json['username'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        // Uzak API parola özetini hiçbir zaman döndürmez.
+        passwordHash:
+            (json['passwordHash'] ?? json['password_hash']) as String? ?? '',
+        createdAt: DateTime.tryParse(
+              (json['createdAt'] ?? json['created_at'])?.toString() ?? '',
+            ) ??
+            DateTime.fromMillisecondsSinceEpoch(0),
         // Eski kayıtlarda (birleştirme öncesi) 'role' alanı yoktu; bu
         // durumda geriye dönük uyumluluk için varsayılan 'user' kullanılır.
-        role: UserRole.fromJson(json['role'] as String?),
+        role: UserRole.fromJson(json['role']?.toString()),
       );
 }

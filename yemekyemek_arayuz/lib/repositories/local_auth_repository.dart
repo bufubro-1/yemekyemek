@@ -24,7 +24,7 @@ class LocalAuthRepository implements AuthRepository {
   Future<void> _writeAllUsers(List<AppUser> users) async {
     await _store.writeList(
       LocalFileNames.users,
-      users.map((u) => u.toJson()).toList(),
+      users.map((u) => u.toLocalJson()).toList(),
     );
   }
 
@@ -47,8 +47,8 @@ class LocalAuthRepository implements AuthRepository {
     }
 
     // Nickname eşsiz olmalıdır.
-    final nicknameTaken = users
-        .any((u) => u.nickname.toLowerCase() == normalizedNickname);
+    final nicknameTaken =
+        users.any((u) => u.nickname.toLowerCase() == normalizedNickname);
     if (nicknameTaken) {
       return AuthResult.failure('Bu nickname zaten kullanılıyor.');
     }

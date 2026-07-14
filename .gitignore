@@ -20,3 +20,7 @@ Thumbs.db
 *.log
 tmp/
 temp/
+
+# Node / web builds
+node_modules/
+dist/

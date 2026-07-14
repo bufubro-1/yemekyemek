@@ -1,20 +1,22 @@
 /// Uygulama genelinde kullanılan konfigürasyon değerleri.
 ///
-/// Şu anda tüm veriler cihaz üzerinde .txt (JSON formatlı) dosyalarda
-/// tutulmaktadır. İleride gerçek bir backend / database'e geçildiğinde
-/// yapılması gereken TEK şey [useRemoteBackend] değerini `true` yapmak
-/// ve [baseApiUrl] adresini güncellemektir. Repository katmanı bu bayrağa
-/// göre otomatik olarak Local -> Remote implementasyonuna geçecek şekilde
-/// tasarlanmıştır (bkz: lib/repositories).
+/// Ortama göre değişen değerler `--dart-define` ile verilebilir.
 class AppConfig {
   AppConfig._();
 
-  /// false  -> LocalAuthRepository / LocalProfileRepository kullanılır (txt dosyası)
-  /// true   -> RemoteAuthRepository / RemoteProfileRepository kullanılır (gerçek API)
-  static const bool useRemoteBackend = false;
+  static const bool useRemoteBackend = bool.fromEnvironment(
+    'USE_REMOTE_BACKEND',
+    defaultValue: true,
+  );
 
-  /// TODO(backend-team): Gerçek API base URL'si buraya girilecek.
-  static const String baseApiUrl = 'https://api.yemekyemek.app/v1';
+  /// Web, iOS simulator ve macOS geliştirmede localhost çalışır.
+  ///
+  /// Android emulator için uygulamayı şu şekilde başlat:
+  /// `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/v1`
+  static const String baseApiUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:3000/v1',
+  );
 
   static const Duration networkTimeout = Duration(seconds: 15);
 }

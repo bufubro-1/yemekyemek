@@ -12,3 +12,4 @@
 \ir 04_menu.sql
 \ir 05_profile_lists.sql
 \ir 06_follows.sql
+\ir 07_admin.sql

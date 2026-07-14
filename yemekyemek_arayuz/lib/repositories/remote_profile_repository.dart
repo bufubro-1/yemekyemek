@@ -1,44 +1,54 @@
 import '../config/api_endpoints.dart';
-import '../config/app_config.dart';
 import '../models/app_user.dart';
 import '../models/user_profile.dart';
+import '../services/api_client.dart';
 import 'profile_repository.dart';
 
-/// ============================================================
-///  GELECEK BACKEND ENTEGRASYONU İÇİN HAZIR İSKELET
-/// ============================================================
-/// Şu anda KULLANILMIYOR. AppConfig.useRemoteBackend = true yapıldığında
-/// ProfileRepositoryProvider bu sınıfı döndürmeye başlayacak.
 class RemoteProfileRepository implements ProfileRepository {
-  final String _baseUrl = AppConfig.baseApiUrl;
+  RemoteProfileRepository({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
+
+  final ApiClient _apiClient;
 
   @override
   Future<UserProfile> createEmptyProfileFor(AppUser user) async {
-    // TODO: POST $_baseUrl${ApiEndpoints.userProfile(user.id)}
-    throw UnimplementedError(
-      'Endpoint: $_baseUrl${ApiEndpoints.userProfile(user.id)}',
+    final profile = UserProfile.empty(userId: user.id);
+    final response = await _apiClient.post(
+      ApiEndpoints.userProfile(user.id),
+      body: profile.toJson(),
     );
+    return response.body == null ? profile : _profileFromResponse(response);
   }
 
   @override
   Future<UserProfile?> getProfile(String userId) async {
-    // TODO: GET $_baseUrl${ApiEndpoints.userProfile(userId)}
-    // Ayrıca ayrı ayrı da çekilebilir:
-    //   GET ${ApiEndpoints.dietPreferences(userId)}
-    //   GET ${ApiEndpoints.allergies(userId)}
-    //   GET ${ApiEndpoints.pastOrders(userId)}
-    //   GET ${ApiEndpoints.lists(userId)}
-    //   GET ${ApiEndpoints.comments(userId)}
-    throw UnimplementedError(
-      'Endpoint: $_baseUrl${ApiEndpoints.userProfile(userId)}',
-    );
+    try {
+      final response = await _apiClient.get(ApiEndpoints.userProfile(userId));
+      return _profileFromResponse(response);
+    } on ApiException catch (error) {
+      if (error.statusCode == 404) return null;
+      rethrow;
+    }
   }
 
   @override
   Future<void> updateProfile(UserProfile profile) async {
-    // TODO: PUT $_baseUrl${ApiEndpoints.userProfile(profile.userId)}
-    throw UnimplementedError(
-      'Endpoint: $_baseUrl${ApiEndpoints.userProfile(profile.userId)}',
+    await _apiClient.put(
+      ApiEndpoints.userProfile(profile.userId),
+      body: profile.toJson(),
     );
+  }
+
+  UserProfile _profileFromResponse(ApiResponse response) {
+    final data = response.data;
+    if (data is! Map) {
+      throw const ApiException('API yanıtında profil bilgisi bulunamadı.');
+    }
+    final payload = Map<String, dynamic>.from(data);
+    final rawProfile = payload['profile'] ?? payload;
+    if (rawProfile is! Map) {
+      throw const ApiException('API yanıtında profil bilgisi bulunamadı.');
+    }
+    return UserProfile.fromJson(Map<String, dynamic>.from(rawProfile));
   }
 }

@@ -68,36 +68,43 @@ class UserProfile {
       };
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-        userId: json['userId'] as String,
-        avatarLocalPath: json['avatarLocalPath'] as String?,
+        userId: (json['userId'] ?? json['user_id']).toString(),
+        avatarLocalPath: (json['avatarLocalPath'] ??
+            json['avatarPath'] ??
+            json['avatar_path']) as String?,
         bio: json['bio'] as String? ?? '',
-        followersCount: json['followersCount'] as int? ?? 0,
-        followingCount: json['followingCount'] as int? ?? 0,
-        ratingBadge: json['ratingBadge'] as String? ?? 'Yeni Üye',
-        dietPreferences: (json['dietPreferences'] as List?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            [],
+        followersCount:
+            (json['followersCount'] ?? json['followers_count']) as int? ?? 0,
+        followingCount:
+            (json['followingCount'] ?? json['following_count']) as int? ?? 0,
+        ratingBadge: (json['ratingBadge'] ?? json['rating_badge']) as String? ??
+            'Yeni Üye',
+        dietPreferences:
+            ((json['dietPreferences'] ?? json['diet_preferences']) as List?)
+                    ?.map((e) => e.toString())
+                    .toList() ??
+                [],
         allergies:
             (json['allergies'] as List?)?.map((e) => e.toString()).toList() ??
                 [],
-        pastOrders: (json['pastOrders'] as List?)
+        pastOrders: ((json['pastOrders'] ?? json['past_orders']) as List?)
                 ?.map((e) => e.toString())
                 .toList() ??
             [],
-        favoriteRestaurants: (json['favoriteRestaurants'] as List?)
+        favoriteRestaurants: ((json['favoriteRestaurants'] ??
+                    json['favorite_restaurants']) as List?)
                 ?.map((e) => e.toString())
                 .toList() ??
             // Eski "lists" alanından göç (varsa) - geriye dönük uyumluluk
             (json['lists'] as List?)?.map((e) => e.toString()).toList() ??
             [],
-        eatListRestaurants: (json['eatListRestaurants'] as List?)
+        eatListRestaurants: ((json['eatListRestaurants'] ??
+                    json['eat_list_restaurants']) as List?)
                 ?.map((e) => e.toString())
                 .toList() ??
             [],
-        comments: (json['comments'] as List?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            [],
+        comments:
+            (json['comments'] as List?)?.map((e) => e.toString()).toList() ??
+                [],
       );
 }

@@ -1,21 +1,18 @@
 import '../config/api_endpoints.dart';
-import '../config/app_config.dart';
 import '../models/app_user.dart';
+import '../services/api_client.dart';
+import '../services/token_storage.dart';
 import 'auth_repository.dart';
 
-/// ============================================================
-///  GELECEK BACKEND ENTEGRASYONU İÇİN HAZIR İSKELET
-/// ============================================================
-/// Şu anda KULLANILMIYOR. AppConfig.useRemoteBackend = true yapıldığında
-/// AuthRepositoryProvider bu sınıfı döndürmeye başlayacak.
-///
-/// Yapılması gerekenler (backend hazır olduğunda):
-///  1. `http` (veya dio) paketiyle gerçek istekleri yaz.
-///  2. Endpoint path'leri [ApiEndpoints] içinde zaten tanımlı.
-///  3. Dönen JWT/token'ı güvenli depoya (örn. flutter_secure_storage) kaydet.
-///  4. AppConfig.useRemoteBackend = true yap.
 class RemoteAuthRepository implements AuthRepository {
-  final String _baseUrl = AppConfig.baseApiUrl;
+  RemoteAuthRepository({
+    ApiClient? apiClient,
+    TokenStorage? tokenStorage,
+  })  : _tokenStorage = tokenStorage ?? TokenStorage(),
+        _apiClient = apiClient ?? ApiClient(tokenStorage: tokenStorage);
+
+  final ApiClient _apiClient;
+  final TokenStorage _tokenStorage;
 
   @override
   Future<AuthResult> register({
@@ -25,13 +22,24 @@ class RemoteAuthRepository implements AuthRepository {
     required String password,
     required UserRole role,
   }) async {
-    // TODO: POST $_baseUrl${ApiEndpoints.register}
-    // body: { "nickname": nickname, "username": username, "email": email, "password": password }
-    throw UnimplementedError(
-      'RemoteAuthRepository henüz aktif değil. '
-      'AppConfig.useRemoteBackend = true yapılıp backend bağlandığında '
-      'bu metod implemente edilecek. Endpoint: $_baseUrl${ApiEndpoints.register}',
-    );
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.register,
+        authenticated: false,
+        body: {
+          'nickname': nickname.trim().toLowerCase(),
+          'username': username.trim(),
+          'email': email.trim().toLowerCase(),
+          'password': password,
+          'role': role.toApiValue(),
+        },
+      );
+      return await _completeAuthentication(response);
+    } on ApiException catch (error) {
+      return AuthResult.failure(error.message);
+    } catch (error) {
+      return AuthResult.failure(error.toString());
+    }
   }
 
   @override
@@ -39,24 +47,50 @@ class RemoteAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    // TODO: POST $_baseUrl${ApiEndpoints.login}
-    throw UnimplementedError(
-      'Endpoint: $_baseUrl${ApiEndpoints.login}',
-    );
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.login,
+        authenticated: false,
+        body: {
+          'email': email.trim().toLowerCase(),
+          'password': password,
+        },
+      );
+      return await _completeAuthentication(response);
+    } on ApiException catch (error) {
+      return AuthResult.failure(error.message);
+    } catch (error) {
+      return AuthResult.failure(error.toString());
+    }
   }
 
   @override
   Future<void> logout() async {
-    // TODO: POST $_baseUrl${ApiEndpoints.logout}
-    throw UnimplementedError('Endpoint: $_baseUrl${ApiEndpoints.logout}');
+    try {
+      await _apiClient.post(ApiEndpoints.logout);
+    } catch (_) {
+      // Sunucuya ulaşılamasa da cihazdaki oturum mutlaka kapatılır.
+    } finally {
+      await _tokenStorage.clearAccessToken();
+    }
   }
 
   @override
   Future<AppUser?> getSavedSession() async {
-    // TODO: GET $_baseUrl${ApiEndpoints.verifyToken} (saklanan token ile)
-    throw UnimplementedError(
-      'Endpoint: $_baseUrl${ApiEndpoints.verifyToken}',
-    );
+    final token = await _tokenStorage.readAccessToken();
+    if (token == null || token.isEmpty) return null;
+
+    try {
+      final response = await _apiClient.get(ApiEndpoints.verifyToken);
+      return _userFromResponse(response);
+    } on ApiException catch (error) {
+      if (error.isUnauthorized) {
+        await _tokenStorage.clearAccessToken();
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -64,9 +98,48 @@ class RemoteAuthRepository implements AuthRepository {
     required String userId,
     required String newUsername,
   }) async {
-    // TODO: PUT $_baseUrl${ApiEndpoints.userProfile(userId)} (username alanı)
-    throw UnimplementedError(
-      'Endpoint: $_baseUrl${ApiEndpoints.userProfile(userId)}',
-    );
+    try {
+      final response = await _apiClient.put(
+        ApiEndpoints.userProfile(userId),
+        body: {'username': newUsername.trim()},
+      );
+      return AuthResult.success(_userFromResponse(response));
+    } on ApiException catch (error) {
+      return AuthResult.failure(error.message);
+    } catch (error) {
+      return AuthResult.failure(error.toString());
+    }
+  }
+
+  Future<AuthResult> _completeAuthentication(ApiResponse response) async {
+    final payload = _payload(response);
+    final token = (payload['token'] ?? payload['accessToken'])?.toString();
+    if (token == null || token.isEmpty) {
+      return AuthResult.failure('API yanıtında erişim tokenı bulunamadı.');
+    }
+
+    final user = _userFromPayload(payload);
+    await _tokenStorage.writeAccessToken(token);
+    return AuthResult.success(user);
+  }
+
+  AppUser _userFromResponse(ApiResponse response) {
+    return _userFromPayload(_payload(response));
+  }
+
+  AppUser _userFromPayload(Map<String, dynamic> payload) {
+    final rawUser = payload['user'] ?? payload;
+    if (rawUser is! Map) {
+      throw const ApiException('API yanıtında kullanıcı bilgisi bulunamadı.');
+    }
+    return AppUser.fromJson(Map<String, dynamic>.from(rawUser));
+  }
+
+  Map<String, dynamic> _payload(ApiResponse response) {
+    final data = response.data;
+    if (data is! Map) {
+      throw const ApiException('API yanıtı beklenen veri yapısında değil.');
+    }
+    return Map<String, dynamic>.from(data);
   }
 }

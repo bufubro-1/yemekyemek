@@ -4,10 +4,9 @@ Bu klasör, `yemekyemek_arayuz` Flutter uygulamasının şu an yerel `.txt` dosy
 (`users.txt`, `profiles.txt`, `restaurants.txt`, bkz. `LocalFileStore`) tuttuğu verilerin
 gerçek bir PostgreSQL veritabanında nasıl saklanacağını tanımlar.
 
-> **Durum:** Uygulama şu an bu veritabanına bağlı **değildir**. Şema, ileride
-> `RemoteAuthRepository` / `RemoteProfileRepository` / `RemoteRestaurantRepository`
-> implemente edilip `AppConfig.useRemoteBackend = true` yapıldığında kullanılacak
-> hedef yapıyı tanımlar.
+> **Durum:** Node.js backend ve Flutter `Remote*Repository` sınıfları bu şemayı
+> kullanır. Bağlantı bilgileri `backend/.env` içindeki `DATABASE_URL` üzerinden
+> okunur; Flutter PostgreSQL'e doğrudan değil, HTTP API üzerinden erişir.
 
 ## Dosyalar ve çalıştırma sırası
 
@@ -22,6 +21,7 @@ Foreign key bağımlılıkları yüzünden dosyaların **numaralandırılmış s
 | 5 | `04_menu.sql` | `menu_categories`, `menu_items` |
 | 6 | `05_profile_lists.sql` | `diet_preferences`, `allergies`, `past_orders`, `favorite_restaurants`, `eat_list_restaurants`, `comments` |
 | 7 | `06_follows.sql` | `follows` (takipçi/takip ilişkisi, many-to-many) |
+| 8 | `07_admin.sql` | `user_role` enum'una `admin` rolünü ekler |
 
 Hepsini sırayla çalıştıran tek bir giriş dosyası da vardır: `schema.sql`.
 
@@ -39,7 +39,7 @@ Dosyaları tek tek çalıştırmak istersen aynı sırayı takip et:
 
 ```bash
 for f in 00_extensions.sql 01_users.sql 02_profiles.sql 03_restaurants.sql \
-         04_menu.sql 05_profile_lists.sql 06_follows.sql; do
+         04_menu.sql 05_profile_lists.sql 06_follows.sql 07_admin.sql; do
   psql "$DATABASE_URL" -f "$f"
 done
 ```

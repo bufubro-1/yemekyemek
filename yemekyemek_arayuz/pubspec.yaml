@@ -14,8 +14,9 @@ dependencies:
   path_provider: ^2.1.2
   # Şifre hash'leme için
   crypto: ^3.0.3
-  # İleride gerçek backend'e bağlanılacağında HTTP istekleri için hazır (şimdilik kullanılmıyor)
+  # Uzak Node API istekleri ve JWT'nin güvenli saklanması
   http: ^1.2.0
+  flutter_secure_storage: ^10.3.1
 
 dev_dependencies:
   flutter_test:

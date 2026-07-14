@@ -5,16 +5,22 @@ Commit atmadan önce `git status` ile değişiklikleri kontrol et.
 
 ## Proje yapısı (hatırlatma)
 
-| Klasör / dosya | Açıklama |
-|---|---|
+
+| Klasör / dosya       | Açıklama                                             |
+| -------------------- | ---------------------------------------------------- |
 | `yemekyemek_arayuz/` | Flutter uygulaması (kaynak kod + platform projeleri) |
-| `database/` | PostgreSQL şema ve SQL scriptleri |
-| `README.md` | Proje tanıtımı |
-| `.gitignore` | Kök ignore kuralları (şu an özellikle `.env`) |
+| `database/`          | PostgreSQL şema ve SQL scriptleri                    |
+| `README.md`          | Proje tanıtımı                                       |
+| `.gitignore`         | Kök ignore kuralları (şu an özellikle `.env`)        |
+
 
 ---
 
+
+
 ## Commit edilmeli
+
+
 
 ### Kaynak kod ve dokümantasyon
 
@@ -26,10 +32,14 @@ Commit atmadan önce `git status` ile değişiklikleri kontrol et.
 - `yemekyemek_arayuz/README.md`, `yemekyemek_arayuz/DEPENDENCIES.md`
 - Kök `README.md`, `COMMIT.md` ve benzeri proje dokümanları
 
+
+
 ### Veritabanı
 
 - `database/*.sql` — şema scriptleri (`00_extensions.sql` … `06_follows.sql`, `schema.sql`)
 - `database/README.md`
+
+
 
 ### Platform / native projeler (bilinçli değişiklikler)
 
@@ -42,6 +52,8 @@ Aşağıdakiler **paylaşılan proje ayarı** değiştiğinde commit edilir:
 > Not: Xcode/Android Studio bazen `project.pbxproj` veya Gradle dosyalarını otomatik günceller.
 > Diff’i oku; sadece senin amacına uygun değişiklikleri stage’le.
 
+
+
 ### Ignore kuralları
 
 - Kök `.gitignore`
@@ -49,7 +61,11 @@ Aşağıdakiler **paylaşılan proje ayarı** değiştiğinde commit edilir:
 
 ---
 
+
+
 ## Commit edilmemeli
+
+
 
 ### Gizli / ortam dosyaları
 
@@ -68,6 +84,8 @@ Flutter `.gitignore` zaten bunları kapsar; yine de stage’e alma:
 - `**/ios/Flutter/ephemeral/`, `**/macos/Flutter/ephemeral/`
 - `coverage/`, `*.log`, `*.class`, `*.pyc`
 
+
+
 ### IDE / işletim sistemi
 
 - `.idea/` — IntelliJ / Android Studio proje ayarları
@@ -76,12 +94,16 @@ Flutter `.gitignore` zaten bunları kapsar; yine de stage’e alma:
 - `.vscode/` — kişisel editör ayarları (takım paylaşmak isterse bilinçli istisna yapılabilir)
 - `.history/`, `.atom/` vb. editör artıkları
 
+
+
 ### Yerel / kişisel veri
 
 - Cihazda üretilen kullanıcı/restoran JSON `.txt` depoları (varsa)
 - Kişisel debug notları, geçici scriptler, yedek klasörler
 
 ---
+
+
 
 ## Hızlı kontrol listesi
 
@@ -107,16 +129,20 @@ git add yemekyemek_arayuz/README.md yemekyemek_arayuz/DEPENDENCIES.md
 
 ---
 
+
+
 ## Bu repodaki bilinen tuzaklar
 
 Şu an `git status`’ta sık görülebilecekler:
 
-| Dosya / klasör | Ne yapmalı? |
-|---|---|
-| `.DS_Store` | Commit etme. Mümkünse tracking’den çıkar: `git rm --cached .DS_Store` ve kök `.gitignore`’a `.DS_Store` ekle |
-| `.idea/` | Commit etme (IDE ayarı) |
-| `yemekyemek_arayuz/pubspec.lock` | **Commit et** (Flutter uygulaması) |
-| `ios/.../project.pbxproj` | Sadece bilinçli native değişiklikse commit et; rastgele Xcode diff’ini incele |
+
+| Dosya / klasör                   | Ne yapmalı?                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `.DS_Store`                      | Commit etme. Mümkünse tracking’den çıkar: `git rm --cached .DS_Store` ve kök `.gitignore`’a `.DS_Store` ekle |
+| `.idea/`                         | Commit etme (IDE ayarı)                                                                                      |
+| `yemekyemek_arayuz/pubspec.lock` | **Commit et** (Flutter uygulaması)                                                                           |
+| `ios/.../project.pbxproj`        | Sadece bilinçli native değişiklikse commit et; rastgele Xcode diff’ini incele                                |
+
 
 Kök `.gitignore` şu an yalnızca `.env` içeriyor. Önerilen eklemeler:
 
@@ -129,6 +155,8 @@ Kök `.gitignore` şu an yalnızca `.env` içeriyor. Önerilen eklemeler:
 (`yemekyemek_arayuz/.gitignore` zaten `.idea/` ve `.DS_Store` içerir; kökteki `.idea/` ve `.DS_Store` için kök ignore da güncellenmeli.)
 
 ---
+
+
 
 ## Commit mesajı
 

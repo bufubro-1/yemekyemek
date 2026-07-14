@@ -1,7 +1,3 @@
-/// İleride bağlanılacak backend endpoint'lerinin tek merkezden yönetildiği
-/// dosya. Şu an hiçbiri çağrılmıyor (useRemoteBackend = false), ancak
-/// RemoteAuthRepository ve RemoteProfileRepository bu path'leri kullanmaya
-/// hazır şekilde yazılmıştır.
 class ApiEndpoints {
   ApiEndpoints._();
 
@@ -15,20 +11,28 @@ class ApiEndpoints {
   static const String appleSignIn = '/auth/apple';
 
   // ---------------- PROFILE ----------------
-  static String userProfile(String userId) => '/users/$userId/profile';
+  static String userProfile(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/profile';
   static String dietPreferences(String userId) =>
-      '/users/$userId/diet-preferences';
-  static String allergies(String userId) => '/users/$userId/allergies';
-  static String pastOrders(String userId) => '/users/$userId/orders';
-  static String lists(String userId) => '/users/$userId/lists';
-  static String comments(String userId) => '/users/$userId/comments';
-  static String followers(String userId) => '/users/$userId/followers';
-  static String following(String userId) => '/users/$userId/following';
-  static String avatarUpload(String userId) => '/users/$userId/avatar';
+      '/users/${Uri.encodeComponent(userId)}/diet-preferences';
+  static String allergies(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/allergies';
+  static String pastOrders(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/orders';
+  static String lists(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/lists';
+  static String comments(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/comments';
+  static String followers(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/followers';
+  static String following(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/following';
+  static String avatarUpload(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/avatar';
 
   // ---------------- RESTAURANT ----------------
   static String restaurant(String ownerUserId) =>
-      '/restaurants/owner/$ownerUserId';
+      '/restaurants/owner/${Uri.encodeComponent(ownerUserId)}';
   static String restaurantMenu(String ownerUserId) =>
-      '/restaurants/owner/$ownerUserId/menu';
+      '/restaurants/owner/${Uri.encodeComponent(ownerUserId)}/menu';
 }
