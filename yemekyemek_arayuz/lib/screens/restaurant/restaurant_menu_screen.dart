@@ -62,7 +62,7 @@ class _RestaurantMenuScreenState extends State<RestaurantMenuScreen> {
 
   Future<void> _showAddCategoryDialog() async {
     final formKey = GlobalKey<FormState>();
-    final categoryController = TextEditingController();
+    String enteredCategoryName = '';
 
     final categoryName = await showDialog<String>(
       context: context,
@@ -72,7 +72,6 @@ class _RestaurantMenuScreenState extends State<RestaurantMenuScreen> {
           content: Form(
             key: formKey,
             child: TextFormField(
-              controller: categoryController,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
               decoration: const InputDecoration(
@@ -80,15 +79,20 @@ class _RestaurantMenuScreenState extends State<RestaurantMenuScreen> {
                 hintText: 'Örneğin Ana Yemekler',
                 border: OutlineInputBorder(),
               ),
+              onChanged: (value) {
+                enteredCategoryName = value;
+              },
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Kategori adı boş bırakılamaz.';
                 }
 
-                final enteredName = value.trim().toLowerCase();
+                final normalizedName = value.trim().toLowerCase();
 
                 final categoryExists = _categories.any(
-                  (category) => category.toLowerCase() == enteredName,
+                  (category) {
+                    return category.toLowerCase() == normalizedName;
+                  },
                 );
 
                 if (categoryExists) {
@@ -114,7 +118,10 @@ class _RestaurantMenuScreenState extends State<RestaurantMenuScreen> {
                   return;
                 }
 
-                Navigator.pop(dialogContext, categoryController.text.trim());
+                Navigator.pop(
+                  dialogContext,
+                  enteredCategoryName.trim(),
+                );
               },
               child: const Text('Ekle'),
             ),
@@ -123,8 +130,6 @@ class _RestaurantMenuScreenState extends State<RestaurantMenuScreen> {
       },
     );
 
-    categoryController.dispose();
-
     if (categoryName == null || !mounted) {
       return;
     }
@@ -132,6 +137,7 @@ class _RestaurantMenuScreenState extends State<RestaurantMenuScreen> {
     setState(() {
       _categories = [..._categories, categoryName];
     });
+
     await _persistCategories();
   }
 
