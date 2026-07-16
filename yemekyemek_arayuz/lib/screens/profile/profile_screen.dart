@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
-
+import 'package:flutter/material.dart'; 
+ 
 import '../../models/user_profile.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/profile_repository.dart';
@@ -10,15 +10,10 @@ import '../../repositories/repository_provider.dart';
 import '../../services/session_controller.dart';
 import '../../utils/app_theme.dart';
 import 'editable_list_screen.dart';
-import 'lists_overview_screen.dart';
-import 'widgets/profile_section_tile.dart';
 import 'widgets/rating_badge.dart';
 
 /// Paylaşılan wireframe'in (PROFİL - 1) kodlanmış, editlenebilir hali.
-///
-/// Görünen isim + nickname AppUser (session) üzerinden, diğer tüm profil
-/// verileri (bio, tercihler, listeler) UserProfile (profiles.txt) üzerinden
-/// okunur/yazılır.
+/// Güncellenmiş Düz Tasarım (Flat Design) ve Yan Yana Önizlemeli Kart yapısını içerir.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -80,8 +75,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// "Profili düzenle": görünen isim (username, AppUser'da tutulur) ve
-  /// bio (UserProfile'da tutulur) birlikte düzenlenir.
   Future<void> _editProfileDialog() async {
     final currentUser = SessionController.instance.currentUser;
     if (currentUser == null || _profile == null) return;
@@ -142,12 +135,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         newUsername: newUsername,
       );
       if (authResult.success) {
-        // ChangeNotifier üzerinden tüm ekranlar (örn. ana sayfa) otomatik
-        // güncellenir.
         SessionController.instance.updateUsername(newUsername);
       } else if (mounted) {
-        // Bug fix: eskiden bu hata sessizce yutulup bio yine de
-        // kaydediliyordu; artık kullanıcıya bildiriliyor.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -164,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _summaryOf(List<String> items) {
-    if (items.isEmpty) return 'Henüz eklenmedi';
+    if (items.isEmpty) return ''; 
     return items.join(', ');
   }
 
@@ -231,7 +220,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Text(
                                 '@${user.nickname}',
                                 style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: AppColors.primary,
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -259,71 +250,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         profile.bio,
                         style: const TextStyle(
-                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                           color: AppColors.textPrimary,
                           height: 1.3,
                         ),
                       ),
                     ],
                     const SizedBox(height: 28),
-                    ProfileSectionTile(
+                    _FlatSection(
                       title: 'Diyet Tercihleri',
-                      subtitle: _summaryOf(profile.dietPreferences),
-                      onTap: () => _openEditableSection(
+                      content: _summaryOf(profile.dietPreferences),
+                      onEdit: () => _openEditableSection(
                         title: 'Diyet Tercihleri',
                         hint: 'Örn: Vegan, gluten free...',
                         items: profile.dietPreferences,
                         onUpdated: (v) => profile.dietPreferences = v,
                       ),
                     ),
-                    ProfileSectionTile(
+                    _FlatSection(
                       title: 'Alerjiler',
-                      subtitle: _summaryOf(profile.allergies),
-                      onTap: () => _openEditableSection(
+                      content: _summaryOf(profile.allergies),
+                      onEdit: () => _openEditableSection(
                         title: 'Alerjiler',
                         hint: 'Örn: Fıstık, çilek...',
                         items: profile.allergies,
                         onUpdated: (v) => profile.allergies = v,
                       ),
                     ),
-                    ProfileSectionTile(
+                    _FlatSection(
                       title: 'Geçmiş Siparişlerim',
-                      subtitle: _summaryOf(profile.pastOrders),
-                      onTap: () => _openEditableSection(
-                        title: 'Geçmiş Siparişlerim',
-                        hint: '',
-                        items: profile.pastOrders,
-                        editable: false,
-                        onUpdated: (v) => profile.pastOrders = v,
-                      ),
+                      content: _summaryOf(profile.pastOrders),
+                      emptyText: 'Henüz sipariş vermedin.',
+                      onEdit: null, // Yalnızca görüntüleme
                     ),
-                    ProfileSectionTile(
-                      title: 'Listelerim',
-                      subtitle:
-                          'Favoriler: ${profile.favoriteRestaurants.length}, '
-                          'EatList: ${profile.eatListRestaurants.length}',
-                      onTap: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ListsOverviewScreen(
-                              profile: profile,
-                              onChanged: _saveProfile,
+                    const SizedBox(height: 12),
+                    
+                    // Listelerim Sekmesi - Yan Yana Önizlemeli Kart Tasarımı
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _ListPreviewCard(
+                            title: 'Favoriler',
+                            icon: Icons.favorite,
+                            iconColor: Colors.red,
+                            items: profile.favoriteRestaurants,
+                            onTap: () => _openEditableSection(
+                              title: 'Favorilerim',
+                              hint: 'Restoran adı ekle...',
+                              items: profile.favoriteRestaurants,
+                              onUpdated: (v) => profile.favoriteRestaurants = v,
                             ),
                           ),
-                        );
-                        setState(() {});
-                      },
+                        ),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: _ListPreviewCard(
+                            title: 'Eatlist',
+                            icon: Icons.restaurant,
+                            iconColor: Colors.orange,
+                            items: profile.eatListRestaurants,
+                            onTap: () => _openEditableSection(
+                              title: 'EatList',
+                              hint: 'Gitmek istediğin restoranı ekle...',
+                              items: profile.eatListRestaurants,
+                              onUpdated: (v) => profile.eatListRestaurants = v,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    ProfileSectionTile(
+                    const SizedBox(height: 16),
+                    
+                    _FlatSection(
                       title: 'Yorumlarım',
-                      subtitle: _summaryOf(profile.comments),
-                      onTap: () => _openEditableSection(
-                        title: 'Yorumlarım',
-                        hint: '',
-                        items: profile.comments,
-                        editable: false,
-                        onUpdated: (v) => profile.comments = v,
-                      ),
+                      content: _summaryOf(profile.comments),
+                      emptyText: 'Henüz yorum yapmadın.',
+                      onEdit: null, // Yalnızca görüntüleme
                     ),
                   ],
                 ),
@@ -337,15 +341,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
+// YENİ BİLEŞEN: Liste Elemanlarını İçinde Gösteren Kart
+class _ListPreviewCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+  final List<String> items;
+  final VoidCallback onTap;
+
+  const _ListPreviewCard({
+    required this.title,
+    required this.icon,
+    required this.iconColor,
+    required this.items,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      clipBehavior: Clip.antiAlias, // Tıklama efektinin kart sınırlarından taşmasını önler
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: iconColor, size: 20),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${items.length} restoran',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              if (items.isEmpty)
+                const Text(
+                  '',
+                  style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
+                )
+              else ...[
+                // İlk 4 elemanı listele
+                ...items.take(4).map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 2.0),
+                  child: Text(
+                    '• $e',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                )),
+                // 4'ten fazla varsa 3 nokta ekle
+                if (items.length > 4)
+                  const Text(
+                    '...',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// YENİ BİLEŞEN: Düz ve sade görünüm (ProfileSectionTile yerine geçer)
+class _FlatSection extends StatelessWidget {
+  final String title;
+  final String content;
+  final VoidCallback? onEdit;
+  final String emptyText; // Boş durumda gösterilecek özelleştirilebilir metin
+
+  const _FlatSection({
+    required this.title,
+    required this.content,
+    this.onEdit,
+    this.emptyText = 'henüz eklenmedi',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isEmpty = content.isEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (onEdit != null)
+              IconButton(
+                icon: const Icon(Icons.edit, size: 20.0, color: Colors.grey),
+                onPressed: onEdit,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          isEmpty ? emptyText : content,
+          style: isEmpty
+              ? const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w600,
+                )
+              : const TextStyle(fontSize: 14.0, color: Colors.black87),
+        ),
+        const SizedBox(height: 8),
+        Divider(thickness: 1.0, color: Colors.grey.shade300),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
 class _Avatar extends StatelessWidget {
   final UserProfile profile;
   const _Avatar({required this.profile});
 
   @override
   Widget build(BuildContext context) {
-    // Bug fix: dart:io / FileImage web'de desteklenmiyor ve uygulamayı
-    // çökertir. Web'de her zaman varsayılan ikona düşülür; native
-    // platformlarda davranış değişmez.
     final hasLocalAvatar = !kIsWeb && profile.avatarLocalPath != null;
 
     return CircleAvatar(
@@ -370,10 +508,21 @@ class _CountColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 14.0,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         Text(
           '$count',
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -391,9 +540,6 @@ class _BottomNavBar extends StatelessWidget {
         border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 10),
-      // Bug fix: HomeScreen'de 3 ikon (home/search/person) varken burada
-      // sadece 2 ikon vardı; artık aynı ikon setiyle hizalı ve profil
-      // ikonu (burada aktif olan sekme) vurgulanıyor.
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
