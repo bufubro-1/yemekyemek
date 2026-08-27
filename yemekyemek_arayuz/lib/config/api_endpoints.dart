@@ -35,4 +35,26 @@ class ApiEndpoints {
       '/restaurants/owner/${Uri.encodeComponent(ownerUserId)}';
   static String restaurantMenu(String ownerUserId) =>
       '/restaurants/owner/${Uri.encodeComponent(ownerUserId)}/menu';
+  static String menuCategories(String ownerUserId) =>
+      '${restaurantMenu(ownerUserId)}/categories';
+
+  static String menuCategory(
+    String ownerUserId,
+    String categoryId,
+  ) =>
+      '${menuCategories(ownerUserId)}/'
+      '${Uri.encodeComponent(categoryId)}';
+
+  static String menuItems(
+    String ownerUserId,
+    String categoryId,
+  ) =>
+      '${menuCategory(ownerUserId, categoryId)}/items';
+
+  static String menuItem(
+    String ownerUserId,
+    String itemId,
+  ) =>
+      '${restaurantMenu(ownerUserId)}/items/'
+      '${Uri.encodeComponent(itemId)}';
 }
