@@ -25,3 +25,6 @@ temp/
 # Node / web builds
 node_modules/
 dist/
+
+# Developer-specific Apple signing
+yemekyemek_arayuz/macos/Runner/Configs/LocalSigning.xcconfig
