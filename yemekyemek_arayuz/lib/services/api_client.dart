@@ -82,6 +82,30 @@ class ApiClient {
         authenticated: authenticated,
       );
 
+  Future<ApiResponse> patch(
+    String path, {
+    Object? body,
+    bool authenticated = true,
+  }) =>
+      request(
+        'PATCH',
+        path,
+        body: body,
+        authenticated: authenticated,
+      );
+
+  Future<ApiResponse> delete(
+    String path, {
+    Object? body,
+    bool authenticated = true,
+  }) =>
+      request(
+        'DELETE',
+        path,
+        body: body,
+        authenticated: authenticated,
+      );
+
   Future<ApiResponse> request(
     String method,
     String path, {
