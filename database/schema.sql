@@ -13,3 +13,4 @@
 \ir 05_profile_lists.sql
 \ir 06_follows.sql
 \ir 07_admin.sql
+\ir 08_menu_crud.sql

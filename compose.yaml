@@ -19,6 +19,7 @@ services:
       - ./database/05_profile_lists.sql:/docker-entrypoint-initdb.d/05_profile_lists.sql:ro
       - ./database/06_follows.sql:/docker-entrypoint-initdb.d/06_follows.sql:ro
       - ./database/07_admin.sql:/docker-entrypoint-initdb.d/07_admin.sql:ro
+      - ./database/08_menu_crud.sql:/docker-entrypoint-initdb.d/08_menu_crud.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
