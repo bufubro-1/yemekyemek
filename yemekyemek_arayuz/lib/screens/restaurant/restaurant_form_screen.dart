@@ -24,15 +24,29 @@ class RestaurantFormScreen extends StatefulWidget {
   }
 }
 
+String _phoneForEditing(String? phone) {
+  if (phone == null || phone.isEmpty) {
+    return '';
+  }
+
+  if (phone.startsWith('+90')) {
+    return '0${phone.substring(3)}';
+  }
+
+  return phone;
+}
+
 class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool get _isEditing => widget.existing != null;
 
   late final _nameController =
       TextEditingController(text: widget.existing?.name);
   late final _descriptionController =
       TextEditingController(text: widget.existing?.description);
-  late final _phoneController =
-      TextEditingController(text: widget.existing?.phone);
+  late final _phoneController = TextEditingController(
+    text: _phoneForEditing(widget.existing?.phone),
+  );
   late final _addressController =
       TextEditingController(text: widget.existing?.address);
 
@@ -117,7 +131,9 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Restoran Bilgileri'),
+        title: Text(
+          _isEditing ? 'Restoranı Düzenle' : 'Restoran Oluştur',
+        ),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
       ),
@@ -135,13 +151,21 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Restoranını oluştur',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  Text(
+                    _isEditing
+                        ? 'Restoran bilgilerini düzenle'
+                        : 'Restoranını oluştur',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text('Önce restoranın temel bilgilerini girelim.'),
-
+                  Text(
+                    _isEditing
+                        ? 'Değiştirmek istediğin bilgileri güncelleyebilirsin.'
+                        : 'Önce restoranın temel bilgilerini girelim.',
+                  ),
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _nameController,
@@ -161,7 +185,6 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _descriptionController,
@@ -175,7 +198,6 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
                       alignLabelWithHint: true,
                     ),
                   ),
-
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _phoneController,
@@ -210,7 +232,6 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _addressController,
@@ -235,7 +256,6 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 24),
                   FilledButton.icon(
                     onPressed: _isSaving ? null : _saveRestaurant,
@@ -249,7 +269,11 @@ class _RestaurantFormScreenState extends State<RestaurantFormScreen> {
                             ),
                           )
                         : const Icon(Icons.save),
-                    label: const Text('Restoranı Kaydet'),
+                    label: Text(
+                      _isEditing
+                          ? 'Değişiklikleri Kaydet'
+                          : 'Restoranı Oluştur',
+                    ),
                   ),
                 ],
               ),
