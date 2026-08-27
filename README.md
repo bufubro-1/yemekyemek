@@ -12,7 +12,67 @@ Yemek ve restoran puanlama sosyal medya platformu.
 Flutter uygulaması ve web yönetim paneli aynı backend üzerinden lokal
 PostgreSQL veritabanını kullanır. Eski `.txt` depolaması remote modda kullanılmaz.
 
-## Lokal kurulum
+## Önerilen lokal kurulum: Docker
+
+PostgreSQL, backend ve admin paneli Docker Compose ile aynı sürümlerde ve tek
+komutla çalıştırılabilir. Flutter uygulaması ise emülatör veya masaüstü cihazında
+normal şekilde çalıştırılır.
+
+Gereksinimler:
+
+- Docker Desktop
+- Flutter SDK
+
+İlk kurulumda kök klasörde:
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+`.env.docker` içindeki `POSTGRES_PASSWORD`, `JWT_SECRET` ve `ADMIN_PASSWORD`
+değerlerini yalnızca lokal ortamda kullanılacak güçlü değerlerle değiştirin.
+Gerçek `.env.docker` dosyasını commit etmeyin.
+
+Servisleri başlatın:
+
+```bash
+docker compose --env-file .env.docker up --build
+```
+
+İlk başlangıçta PostgreSQL veritabanı oluşturulur ve `database/` altındaki şema
+dosyaları numara sırasıyla çalıştırılır. Sonraki başlangıçlarda veriler
+`postgres_data` volume'unda korunur.
+
+Hazır olduklarını şu adreslerden kontrol edebilirsiniz:
+
+- API sağlık kontrolü: `http://localhost:3000/health`
+- API: `http://localhost:3000/v1`
+- Admin paneli: `http://localhost:5173`
+
+Flutter uygulamasını ayrı bir terminalde çalıştırın:
+
+```bash
+cd yemekyemek_arayuz
+flutter pub get
+flutter run
+```
+
+iOS simulator ve macOS uygulaması varsayılan `http://localhost:3000/v1`
+adresini kullanır. Android emülatörü için:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/v1
+```
+
+Servisleri durdurmak için:
+
+```bash
+docker compose --env-file .env.docker down
+```
+
+Bu komut veritabanı verilerini silmez.
+
+## Docker olmadan lokal kurulum
 
 Gereksinimler:
 
@@ -73,7 +133,7 @@ flutter run --dart-define=API_BASE_URL=http://HOST:3000/v1
 
 Android emülatöründen ana makineye erişmek için `HOST` değeri `10.0.2.2` olmalıdır.
 
-## Günlük çalıştırma
+## Docker olmadan günlük çalıştırma
 
 Kurulum ve veritabanı şeması bir kez tamamlandıktan sonra iki ayrı terminal açın.
 
