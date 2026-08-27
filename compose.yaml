@@ -1,0 +1,80 @@
+name: yemekyemek
+
+services:
+  database:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/00_extensions.sql:/docker-entrypoint-initdb.d/00_extensions.sql:ro
+      - ./database/01_users.sql:/docker-entrypoint-initdb.d/01_users.sql:ro
+      - ./database/02_profiles.sql:/docker-entrypoint-initdb.d/02_profiles.sql:ro
+      - ./database/03_restaurants.sql:/docker-entrypoint-initdb.d/03_restaurants.sql:ro
+      - ./database/04_menu.sql:/docker-entrypoint-initdb.d/04_menu.sql:ro
+      - ./database/05_profile_lists.sql:/docker-entrypoint-initdb.d/05_profile_lists.sql:ro
+      - ./database/06_follows.sql:/docker-entrypoint-initdb.d/06_follows.sql:ro
+      - ./database/07_admin.sql:/docker-entrypoint-initdb.d/07_admin.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      DATABASE_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: http://localhost:${ADMIN_PORT:-5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_NICKNAME: ${ADMIN_NICKNAME}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      - ./backend/src:/app/src:ro
+      - ./backend/test:/app/test:ro
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ./admin
+    command: npm run dev -- --host 0.0.0.0
+    environment:
+      VITE_API_URL: http://localhost:${BACKEND_PORT:-3000}/v1
+    ports:
+      - "${ADMIN_PORT:-5173}:5173"
+    volumes:
+      - ./admin/src:/app/src:ro
+      - ./admin/public:/app/public:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
